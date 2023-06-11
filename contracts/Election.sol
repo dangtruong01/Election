@@ -10,21 +10,48 @@ contract Election {
         uint voteCount;
     }
 
+    //Address
+    address contractOwner;
     //Voters
-    mapping(address => bool) public voters;
-    //Store candidates
+    mapping(address => bool) private voters;
+    //Store candidatesq
     mapping(uint => Candidate) public candidates;
     //Total number of candidates
     uint public candidatesCount;
+    //Candidates Names
+    string[] public candidatesNames;
 
-    constructor() {
-        addCandidate("Hai Dang");
-        addCandidate("Tony Tan");
+    modifier onlyOwner {
+        require(msg.sender == contractOwner);
+        _;
     }
 
-    function addCandidate(string memory _name) private {
+    constructor() {
+        contractOwner = msg.sender;
+    }
+
+    function addCandidate(string memory _name) public onlyOwner {
         candidatesCount++;
         candidates[candidatesCount] = Candidate(candidatesCount, _name, 0);
+        candidatesNames.push(_name);
+    }
+
+    function getCandidatesCount() public view returns(uint) {
+        return candidatesCount;
+    }
+
+    function getCandidatesNames() public view returns(string[] memory _candidateList) {
+        return candidatesNames;
+    }
+
+    function getWinner() public view returns(Candidate memory) {
+        Candidate memory winner;
+        for (uint i = 0; i < candidatesCount; i++) {
+            if (candidates[i].voteCount > winner.voteCount) {
+                winner = candidates[i];
+            }
+        }
+        return winner;
     }
 
     function vote(uint _candidateId) public {
